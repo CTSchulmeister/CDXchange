@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <%- include partials/head.ejs %>    
+    </head>
+
+    <body>
+        <%- include partials/header.ejs %>
+
+        <%- include partials/user-navigation.ejs %>
+
+        <%- include partials/site-navigation.ejs %>
+
+        <!-- Main Content Area -->
+        <main>
+            <section id="breadcrumb">
+                <button name="back" class="button__bubble button__bubble--small" onclick="history.back()">Go Back</button>
+            </section>
+            <section class="content content--centered static">
+                <div class="content__wrapper">
+                    <h2>404 - Page not found. :(</h2>
+
+                    <% if(typeof message !== 'undefined') { %>
+                        <p><%= message %></p>
+                    <% } else { %>
+                        <p>Seems something went wrong...</p>
+                    <% } %>
+                </div>
+            </section>
+        </main>
+
+        <%- include partials/footer.ejs %>
+    </body>
+</html>

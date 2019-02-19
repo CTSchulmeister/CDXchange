@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <%- include partials/head.ejs %>    
+    </head>
+
+    <body>
+        <%- include partials/header.ejs %>
+
+        <%- include partials/user-navigation.ejs %>
+
+        <%- include partials/site-navigation.ejs %>
+
+        <!-- Main Content Area -->
+        <main>
+            <section id="breadcrumb">
+                <button name="back" class="button__bubble button__bubble--small" onclick="history.back()">Go Back</button>
+                <a href="/" class="button__bar">Home</a> > 
+                <a href="/categories" class="button__bar">Categories</a> >
+                <a href="/categories/<%= item.catalogCategory %>" class="button__bar"><%= item.catalogCategory %></a> >
+                <a href="/categories/<%= item.catalogCategory %>/<%= item.itemCode %>" class="button__bar"><%= item.itemName %></a>
+            </section>
+            <section id="album-content">
+                <div class="content__wrapper">
+                    <div class="album-content__info">
+                        <img src="/Images/AlbumCovers/<%= item._id %>.jpg" alt="<%= item.itemName %> Album Cover" class="album-content__info--image">
+                        <div class="album-content__info--data">
+                            <div class="album-content__info--data-header">
+                                <h2><%= item.itemName %></h2>
+                                <span class="rating">
+                                    <% if(item.rating.numberOfVotes > 1) { %>
+                                        (<%= item.rating.numberOfVotes %> Votes) 
+                                    <% } else { %>
+                                    (<%= item.rating.numberOfVotes %> Vote) 
+                                    <% } %>
+                                    <% for(let j = 1; j <= item.rating.value; j++) { %>
+                                        <i class="fas fa-star checked"></i>
+                                    <% } %>
+                                    <% for(let j = 5; j > item.rating.value; j--) { %>
+                                        <i class="fas fa-star"></i>
+                                    <% } %>
+                                </span>
+                            </div>
+                            <h3><a href="/artists" class="button__bar" style="text-transform: none"><%= item.artist %></a></h3>
+                            <h3><%= item.year %> | &copy; <%= item.recordLabel %></h3>
+                            <p>
+                                <%= item.description %>
+                            </p>
+                            <% if(theUser.user == true) { %>
+                                <% if(owned == false) { %>
+                                    <% if(swaps && swaps.length > 0) { %>
+                                        <button class="button__bubble button__bubble--medium modal__select--trigger">Swap It (<%= swaps.length %> Available)</button>
+                                    <% } else { %> 
+                                        <span class="button__bubble--medium button__bubble--inactive">None available at this time</span>
+                                    <% } %>
+                                <% } else { %>
+                                    <span class="button__bubble--medium button__bubble--inactive">You own this item</span>
+                                <% } %>
+                                <% if(reviewed == false) { %>
+                                    <button class="button__bubble button__bubble--medium modal__rate--trigger">Rate It</button>
+                                <% } else { %>
+                                    <span class="button__bubble--inactive button__bubble--medium">You've already rated this item</span>
+                                <% } %>
+                            <% } else { %>
+                                <span class="button__bubble--medium button__bubble--inactive">Please login to swap or rate</span>
+                            <% } %>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="album-content__tracks">
+                        <% if(item.tracks.length != 0) { %>
+                            <h3 class="subsection__header">Tracks</h3>
+                            
+                            <table>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Artist</th>
+                                    <th><i class="fas fa-clock"></i></th>
+                                </tr>
+                                <% item.tracks.forEach((track) => { %>
+                                    <tr>
+                                        <td><%= track.number %></td>
+                                        <td><%= track.title %></td>
+                                        <td>
+                                            <% for(let i = 0; i < track.artists.length; i++) { %>
+                                                <% if(i + 1 == track.artists.length) { %>
+                                                    <%= track.artists[i] %>
+                                                <% } else { %>
+                                                    <%= track.artists[i] + ', ' %>
+                                                <% } %>
+                                            <% } %>
+                                        </td>
+                                        <td><%= track.length %></td>
+                                    </tr>
+                                <% }); %>
+                            </table>
+                        <% } else { %>
+                            <h3>No track information available at this time.</h3>
+                        <% } %>  
+                    </div>
+                    <% if(typeof feedback !== 'undefined' && feedback.length > 0) { %>
+                        <br>
+                        <div class="album-feedback">
+                            <h3 class="subsection__header">Reviews (<%= feedback.length %>)</h3>
+                            <br>
+                            <% feedback.forEach(review => { %>
+                                <div class="feedback__review">
+                                    <% for(var i = 0; i < feedbackUsers.length; i++) { %>
+                                        <% if(feedbackUsers[i]._id == review._userId) { %>
+                                            <a href="/profile?user=<%= feedbackUsers[i]._id %>"><img src="/Images/ProfileImages/DefaultProfileImage.jpg" class="feedback__review--image"></a>
+                                            <div class="feedback__review--info">
+                                                <h4>
+                                                    <a href="/profile?user=<%= feedbackUsers[i]._id %>" class="button__simple"><%= feedbackUsers[i].username %></a>
+                                                    <% if(feedbackUsers[i]._id == theUser.id ) { %>
+                                                        (You)
+                                                        <span class="feedback__review--options">
+                                                            <button onclick="editItemReview('<%= review.comment %>', '<%= review.starRating %>', '<%= item.itemName %>')"><i class="fas fa-edit"></i></button>
+                                                            <button onclick="deleteItemReviewPrompt('<%= review._id %>')"><i class="fas fa-trash-alt"></i></button>
+                                                        </span>
+                                                    <% } %>
+                                                </h4>
+                                                <span class="rating">
+                                                    <% for(let j = 1; j <= review.starRating; j++) { %>
+                                                        <i class="fas fa-star checked"></i>
+                                                    <% } %>
+                                                    <% for(let j = 5; j > review.starRating; j--) { %>
+                                                        <i class="fas fa-star"></i>
+                                                    <% } %>
+                                                </span>
+                                                <p><span class="paragraph-header">Posted: </span><%= review.postedOn.getMonth() + 1 %>-<%= review.postedOn.getDate() %>-<%= review.postedOn.getFullYear() %></p>
+                                                <% if(review.comment != '') { %>
+                                                    <p><span class="paragraph-header">Comment: </span><%= review.comment %></p>
+                                                <% } %>
+                                            </div>
+                                            <% break; %>
+                                        <% } %>
+                                    <% } %>
+                                        
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+            </section>
+
+        </main>
+        
+        <%- include partials/footer.ejs %>
+
+        <!-- SWAPS MODAL -->
+        <% if(swaps && swaps.length > 0) { %>
+            <div class="modal modal__select">
+                <div class="modal--content modal__select--content">
+                    <div class="modal__select--header">
+                        <span class="modal--close">&times;</span>
+                        <h2>Select Swap:</h2>
+                    </div>
+                    <div class="modal__select--table-container">
+                        <table class="item-select__table">
+                            <tr>
+                                <th colspan="2">Album</th>
+                                <th>User</th>
+                                <th style="text-align: center"><i class="fas fa-exchange-alt"></i></th>
+                            </tr>
+                            <% for(var i = 0; i < swaps.length; i++) { %>
+                                <tr>
+                                    <td><img src="/Images/AlbumCovers/<%= item._id %>.jpg" alt="<%= item.itemName %> Album Cover" class="image-icon"></td>
+                                    <td><%= item.artist %> - <%= item.itemName %></td>   
+                                    <% for(var j = 0; j < swapUsers.length; j++) { %>
+                                        <% if(swapUsers[j]._id == swaps[i]._userId) { %>
+                                            <td><%= swapUsers[j].username %></td>
+                                            <% break; %>
+                                        <% } %>
+                                    <% } %>
+                                    <% if(swaps[i].wantedItemIsOwned == true) { %>
+                                        <td style="text-align: center"><a href="/mySwaps?action=offer&theOffer=<%= swaps[i]._id %>" class="button__bubble button__bubble--small">Offer</a></td>
+                                    <% } else { %>
+                                        <td style="text-align: center"><span class="button__bubble--inactive button__bubble--small">Offer</span></td>
+                                    <% } %>
+                                    
+                                </tr>
+                            <% } %>
+                        </table>
+                    </div> 
+                </div>
+            </div>
+        <% } %>
+
+        <!-- RATING MODAL -->
+        <% if(theUser.user == true) { %>
+            <div class="modal modal__rate">
+                <div class="modal--content modal__rate--content">
+                    <div class="modal__select--header">
+                        <span class="modal--close">&times;</span>
+                        <h2>Rate "<%= item.itemName %>"</h2>
+                    </div>
+                    <br>
+                    <div class="modal__rate--feedback-container">
+                        <form method="POST" action="/rateItem" id="rate-item-form">
+                            <input type="hidden" name="userId" value="<%= theUser.id %>">
+                            <input type="hidden" name="itemId" value="<%= item._id %>">
+                            <input id="oldRating" type="hidden" name="oldRating">
+                            <div class="star-rating">
+                                <span><input type="radio" name="rating" id="star5" value="5"><i class="fas fa-star"></i></span>
+                                <span><input type="radio" name="rating" id="star4" value="4"><i class="fas fa-star"></i></span>
+                                <span><input type="radio" name="rating" id="star3" value="3"><i class="fas fa-star"></i></span>
+                                <span><input type="radio" name="rating" id="star2" value="2"><i class="fas fa-star"></i></span>
+                                <span><input type="radio" name="rating" id="star1" value="1"><i class="fas fa-star"></i></span>
+                            </div>
+                            <textarea id="rate-text-area" name="comment" placeholder="Any comments on <%= item.itemName %>?"></textarea>
+                            <input type="submit" value="Rate" class="button__bubble--inactive button__bubble--large" id="rate-item--submit" disabled>
+                        </form>
+                    </div> 
+                </div>
+            </div>
+        <% } %>
+    </body>
+</html>
